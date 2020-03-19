@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+
+  php:
+    container_name: laravel-php
+    build: ./docker/php
+    volumes:
+    - ./server:/var/www
+
+  nginx:
+    image: nginx:1.16
+    container_name: laravel-nginx
+    ports:
+    - 20080:80
+    volumes:
+    - ./server:/var/www
+    - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+    - php
+
+  mysql:
+    image: mysql:8.0
+    container_name: laravel-mysql
+    ports:
+      - 23306:3306
+    environment:
+      - MYSQL_DATABASE=laravel
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=root
+      - TZ=Asia/Tokyo
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+
+  # GUIでDB見る時用のPhpMyadmin（MySQLworkbenchとか使うなら必要ない）
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: laravel-phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    ports:
+      - 2111:80
